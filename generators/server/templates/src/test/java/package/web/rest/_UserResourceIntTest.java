@@ -425,7 +425,7 @@ public class UserResourceIntTest <% if (databaseType === 'cassandra') { %>extend
         <%_ } _%>
 
         // Get the user
-        restUserMockMvc.perform(get("/api/users/{login}", user.getLogin()))
+        restUserMockMvc.perform(get("/api/users/{id}", user.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.login").value(user.getLogin()))
@@ -443,7 +443,7 @@ public class UserResourceIntTest <% if (databaseType === 'cassandra') { %>extend
     @Transactional
     <%_ } _%>
     public void getNonExistingUser() throws Exception {
-        restUserMockMvc.perform(get("/api/users/unknown"))
+        restUserMockMvc.perform(get("/api/users/100000"))
             .andExpect(status().isNotFound());
     }
 <%_ if (authenticationType !== 'oauth2') { _%>
@@ -694,7 +694,7 @@ public class UserResourceIntTest <% if (databaseType === 'cassandra') { %>extend
         int databaseSizeBeforeDelete = userRepository.findAll().size();
 
         // Delete the user
-        restUserMockMvc.perform(delete("/api/users/{login}", user.getLogin())
+        restUserMockMvc.perform(delete("/api/users/{id}", user.getId())
             .accept(TestUtil.APPLICATION_JSON_UTF8))
             .andExpect(status().isOk());
 

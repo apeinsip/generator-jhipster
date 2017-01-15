@@ -269,9 +269,12 @@ public class UserService {
      <%_ if (databaseType === 'mongodb' || databaseType === 'sql') { _%>
      * @param imageUrl image URL of user
      <%_ } _%>
+     * @return the modified user if possible
      */
-    public void updateUser(String firstName, String lastName, String email, String langKey<% if (databaseType === 'mongodb' || databaseType === 'sql') { %>, String imageUrl<% } %>) {
-        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(user -> {
+    public Optional<UserDTO> updateUser(String firstName, String lastName, String email, String langKey<% if (databaseType === 'mongodb' || databaseType === 'sql') { %>, String imageUrl<% } %>) {
+        return Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+            .map(userRepository::findOne)
+            .map(user -> {
             user.setFirstName(firstName);
             user.setLastName(lastName);
             user.setEmail(email);
@@ -289,7 +292,8 @@ public class UserService {
             cacheManager.getCache("users").evict(user.getLogin());
             <%_ } _%>
             log.debug("Changed Information for User: {}", user);
-        });
+            return user;
+        }).map(UserDTO::new);
     }
 
     /**
@@ -335,8 +339,8 @@ public class UserService {
             .map(UserDTO::new);
     }
 
-    public void deleteUser(String login) {
-        userRepository.findOneByLogin(login).ifPresent(user -> {
+    public Optional<UserDTO> deleteUser(Long id) {
+        return Optional.ofNullable(id).map(userRepository::findOne).map(user -> {
             <%_ if (enableSocialSignIn) { _%>
             socialService.deleteUserSocialConnection(user.getLogin());
             <%_ } _%>
@@ -345,15 +349,18 @@ public class UserService {
             userSearchRepository.delete(user);
             <%_ } _%>
             <%_ if (cacheManagerIsAvailable === true) { _%>
-            cacheManager.getCache("users").evict(login);
+            cacheManager.getCache("users").evict(user.getLogin());
             <%_ } _%>
             log.debug("Deleted User: {}", user);
-        });
+            return user;
+        }).map(UserDTO::new);
     }
 <%_ if (authenticationType !== 'oauth2') { _%>
 
     public void changePassword(String password) {
-        userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(user -> {
+        Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+            .map(userRepository::findOne)
+            .ifPresent(user -> {
             String encryptedPassword = passwordEncoder.encode(password);
             user.setPassword(encryptedPassword);
             <%_ if (databaseType === 'mongodb' || databaseType === 'cassandra') { _%>
@@ -384,34 +391,36 @@ public class UserService {
     <%_ if (databaseType === 'sql') { _%>
     @Transactional(readOnly = true)
     <%_ } _%>
-    public Optional<User> getUserWithAuthoritiesByLogin(String login) {
+    public Optional<UserDTO> getUserWithAuthoritiesByLogin(String login) {
         <%_ if (databaseType === 'sql') { _%>
-        return userRepository.findOneWithAuthoritiesByLogin(login);
+        return userRepository.findOneWithAuthoritiesByLogin(login).map(UserDTO::new);
         <%_ } else { // MongoDB and Cassandra _%>
-        return userRepository.findOneByLogin(login);
+        return userRepository.findOneByLogin(login).map(UserDTO::new);
         <%_ } _%>
     }
 
     <%_ if (databaseType === 'sql') { _%>
     @Transactional(readOnly = true)
     <%_ } _%>
-    public User getUserWithAuthorities(<%= pkType %> id) {
+    public Optional<UserDTO> getUserWithAuthorities(<%= pkType %> id) {
         <%_ if (databaseType === 'sql') { _%>
-        return userRepository.findOneWithAuthoritiesById(id);
+        return Optional.ofNullable(userRepository.findOneWithAuthoritiesById(id)).map(UserDTO::new);
         <%_ } else { // MongoDB and Cassandra _%>
-        return userRepository.findOne(id);
+        return Optional.ofNullable(userRepository.findOne(id)).map(UserDTO::new);
         <%_ } _%>
     }
 
     <%_ if (databaseType === 'sql') { _%>
     @Transactional(readOnly = true)
     <%_ } _%>
-    public User getUserWithAuthorities() {
+    public Optional<UserDTO> getUserWithAuthorities() {
         <%_ if (databaseType === 'sql') { _%>
-        return userRepository.findOneWithAuthoritiesByLogin(SecurityUtils.getCurrentUserLogin()).orElse(null);
+        return Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+                .map(userRepository::findOneWithAuthoritiesById)
         <%_ } else { // MongoDB and Cassandra _%>
-        return userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).orElse(null);
+        return userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin())
         <%_ } _%>
+                .map(UserDTO::new);
     }
     <%_ if ((databaseType === 'sql' || databaseType === 'mongodb') && authenticationType === 'session') { _%>
 

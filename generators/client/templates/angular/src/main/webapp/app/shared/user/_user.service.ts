@@ -44,8 +44,8 @@ export class UserService {
             .map((res: Response) => this.convertResponse(res));
     }
 
-    find(login: string): Observable<User> {
-        return this.http.get(`${this.resourceUrl}/${login}`).map((res: Response) => res.json());
+    find(id: string): Observable<User> {
+        return this.http.get(`${this.resourceUrl}/${id}`).map((res: Response) => res.json());
     }
 <% } %>
     query(req?: any): Observable<ResponseWrapper> {
@@ -55,8 +55,8 @@ export class UserService {
     }
 <%_ if (authenticationType !== 'oauth2') { _%>
 
-    delete(login: string): Observable<Response> {
-        return this.http.delete(`${this.resourceUrl}/${login}`);
+    delete(id: string): Observable<Response> {
+        return this.http.delete(`${this.resourceUrl}/${id}`);
     }
 
     authorities(): Observable<string[]> {

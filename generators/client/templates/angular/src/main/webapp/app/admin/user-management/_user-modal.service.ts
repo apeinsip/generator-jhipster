@@ -31,14 +31,14 @@ export class UserModalService {
         private userService: UserService
     ) {}
 
-    open(component: Component, login?: string): NgbModalRef {
+    open(component: Component, id?: string): NgbModalRef {
         if (this.isOpen) {
             return;
         }
         this.isOpen = true;
 
-        if (login) {
-            this.userService.find(login).subscribe((user) => this.userModalRef(component, user));
+        if (id) {
+            this.userService.find(id).subscribe((user) => this.userModalRef(component, user));
         } else {
             return this.userModalRef(component, new User());
         }

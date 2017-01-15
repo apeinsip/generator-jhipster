@@ -194,7 +194,7 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         <%_ } _%>
         user.setLangKey("en");
         user.setAuthorities(authorities);
-        when(mockUserService.getUserWithAuthorities()).thenReturn(user);
+        when(mockUserService.getUserWithAuthorities()).thenReturn(Optional.of(new UserDTO(user)));
         <%_ if (authenticationType === 'oauth2') { _%>
 
         // create security-aware mockMvc
@@ -222,7 +222,7 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test
     public void testGetUnknownAccount() throws Exception {
-        when(mockUserService.getUserWithAuthorities()).thenReturn(null);
+        when(mockUserService.getUserWithAuthorities()).thenReturn(Optional.empty());
 
         restUserMockMvc.perform(get("/api/account")
             .accept(MediaType.APPLICATION_JSON))

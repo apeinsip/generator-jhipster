@@ -65,7 +65,7 @@ public class DomainUserDetailsService implements UserDetailsService {
                     .map(authority -> new SimpleGrantedAuthority(authority.getName()))<% } %><% if (databaseType === 'cassandra') { %>
                 .map(authority -> new SimpleGrantedAuthority(authority))<% } %>
                 .collect(Collectors.toList());
-            return new org.springframework.security.core.userdetails.User(lowercaseLogin,
+            return new DomainUser(user.getId(), lowercaseLogin,
                 user.getPassword(),
                 grantedAuthorities);
         }).orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the " +
