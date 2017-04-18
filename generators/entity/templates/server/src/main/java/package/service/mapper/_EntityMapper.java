@@ -45,7 +45,12 @@ for (idx in relationships) {
 
     @Mapping(source = "<%= relationshipName %>.id", target = "<%= relationships[idx].relationshipFieldName %>Id")<% if (relationships[idx].otherEntityFieldCapitalized !='Id' && relationships[idx].otherEntityFieldCapitalized !== '') { %>
     @Mapping(source = "<%= relationshipName %>.<%= relationships[idx].otherEntityField %>", target = "<%= relationships[idx].relationshipFieldName %><%= relationships[idx].otherEntityFieldCapitalized %>")<% } } } %>
-    <% if(renMapAnotEnt === true) { %><%= entityClass %>DTO toDto(<%= entityClass %> <%= entityInstance %>); <% } %><%
+    <% if(renMapAnotEnt === true) { %><%= entityClass %>DTO toDto(<%= entityClass %> <%= entityInstance %>); <% } %>
+
+    // Mainly for testing
+    <%= entityClass %>UpdateDTO toUpdateDTO(<%= entityClass %> <%= entityInstance %>);
+
+<%
 // DTO -> entity mapping
 var renMapAnotDto = false;  //Render Mapping Annotation during DTO to Entity conversion?
 for (idx in relationships) {
@@ -59,7 +64,7 @@ for (idx in relationships) {
     @Mapping(target = "<%= relationshipNamePlural %>", ignore = true)<% } else if (relationshipType === 'one-to-many') {renMapAnotDto = true; %>
     @Mapping(target = "<%= relationshipNamePlural %>", ignore = true)<% } else if (relationshipType === 'one-to-one' && ownerSide === false) {renMapAnotDto = true; %>
     @Mapping(target = "<%= relationshipName %>", ignore = true)<% } } %>
-    <% if(renMapAnotDto === true) { %><%= entityClass %> toEntity(<%= entityClass%>DTO <%= entityInstance %>DTO); <% } %>
+    <% if(renMapAnotDto === true) { %><%= entityClass %> toEntityFromUpdate(<%= entityClass%>UpdateDTO <%= entityInstance %>UpdateDTO); <% } %>
 
     void updateEntity(<%= entityClass %>UpdateDTO dto, @MappingTarget <%= entityClass %> entity);
 

@@ -21,13 +21,20 @@ const instanceName = (dto === 'mapstruct') ? entityInstance + 'DTO' : entityInst
 const mapper = entityInstance  + 'Mapper';
 const dtoToEntity = mapper + '.' + 'toEntity';
 const entityToDto = mapper + '.' + 'toDto';
-const returnPrefix = (returnDirectly && searchEngine !== 'elasticsearch') ? 'return' : instanceType + ' result =';
+const returnPrefix = (returnDirectly && searchEngine !== 'elasticsearch') ? 'return' : 'final ' + instanceType + ' result =';
 let resultEntity;
 if (!viaService) {
     if (dto === 'mapstruct') {
         resultEntity = entityInstance; %>
-        <%= entityClass %> <%= entityInstance %> = <%= dtoToEntity %>(<%= instanceName %>);
-        <%= entityInstance %> = <%= entityInstance %>Repository.save(<%= entityInstance %>);
+        final <%= entityClass %> <%= resultEntity %>;
+        if (<%= instanceName %>.getId() == null) {
+            final <%= entityClass %> entity = new <%= entityClass %>();
+            <%= mapper %>.updateEntity(<%= instanceName %>, entity);
+            <%= resultEntity %> = <%= entityInstance %>Repository.save(entity);
+        } else {
+            <%= resultEntity %> = <%= entityInstance %>Repository.findOne(<%= instanceName %>.getId());
+            <%= mapper %>.updateEntity(<%= instanceName %>, <%= resultEntity %>);
+        }
         <%= returnPrefix %> <%= entityToDto %>(<%= entityInstance %>);<% } else {
     resultEntity = 'result'; %>
         <%= returnPrefix %> <%= entityInstance %>Repository.save(<%= entityInstance %>);<% } if (searchEngine === 'elasticsearch') { %>
