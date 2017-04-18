@@ -75,7 +75,7 @@ for (idx in relationships) {
         if (id == null) {
             return null;
         }
-        <%= entityClass %> <%= entityInstance %> = new <%= entityClass %>();
+        final <%= entityClass %> <%= entityInstance %> = new <%= entityClass %>();
         <%= entityInstance %>.setId(id);
         return <%= entityInstance %>;
     }<%}%>
