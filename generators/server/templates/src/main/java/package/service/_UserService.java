@@ -272,7 +272,7 @@ public class UserService {
      * @return the modified user if possible
      */
     public Optional<UserDTO> updateUser(String firstName, String lastName, String email, String langKey<% if (databaseType === 'mongodb' || databaseType === 'sql') { %>, String imageUrl<% } %>) {
-        return Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+        return SecurityUtils.getCurrentUserLoginId()
             .map(userRepository::findOne)
             .map(user -> {
             user.setFirstName(firstName);
@@ -358,7 +358,7 @@ public class UserService {
 <%_ if (authenticationType !== 'oauth2') { _%>
 
     public void changePassword(String password) {
-        Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+        SecurityUtils.getCurrentUserLoginId()
             .map(userRepository::findOne)
             .ifPresent(user -> {
             String encryptedPassword = passwordEncoder.encode(password);
@@ -415,7 +415,7 @@ public class UserService {
     <%_ } _%>
     public Optional<UserDTO> getUserWithAuthorities() {
         <%_ if (databaseType === 'sql') { _%>
-        return Optional.ofNullable(SecurityUtils.getCurrentUserLoginId())
+        return SecurityUtils.getCurrentUserLoginId()
                 .map(userRepository::findOneWithAuthoritiesById)
         <%_ } else { // MongoDB and Cassandra _%>
         return userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin())

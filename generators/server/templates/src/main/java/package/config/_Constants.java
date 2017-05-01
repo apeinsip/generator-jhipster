@@ -30,6 +30,8 @@ public final class Constants {
     public static final String ANONYMOUS_USER = "anonymoususer";
     public static final String DEFAULT_LANGUAGE = "<%= nativeLanguage %>";
 
+    public static final Long SYSTEM_ACCOUNT_ID = 1L;
+
     private Constants() {
     }
 }

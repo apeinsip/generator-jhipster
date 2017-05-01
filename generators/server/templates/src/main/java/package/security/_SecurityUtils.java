@@ -18,6 +18,8 @@
 -%>
 package <%=packageName%>.security;
 
+import java.util.Optional;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -72,16 +74,16 @@ public final class SecurityUtils {
      *
      * @return the login of the current user
      */
-    public static Long getCurrentUserLoginId() {
+    public static Optional<Long> getCurrentUserLoginId() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
         if (authentication != null) {
             if (authentication.getPrincipal() instanceof DomainUser) {
                 DomainUser springSecurityUser = (DomainUser) authentication.getPrincipal();
-                return springSecurityUser.getId();
+                return Optional.ofNullable(springSecurityUser.getId());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
