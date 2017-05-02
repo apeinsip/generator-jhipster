@@ -88,7 +88,7 @@ public class UserDTO {
     public UserDTO(User user) {
         this(user.getId(), user.getLogin(), user.getFirstName(), user.getLastName(),
             user.getEmail(), user.getActivated(),<% if (databaseType === 'sql' || databaseType === 'mongodb') { %> user.getImageUrl(), <% } %>user.getLangKey(),<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>
-            user.getCreatedBy(), user.getCreatedDate(), user.getLastModifiedBy(), user.getLastModifiedDate(),
+            user.getCreatedByUserName(), user.getCreatedDate(), user.getLastModifiedByUserName(), user.getLastModifiedDate(),
             user.getAuthorities().stream().map(Authority::getName)
                 .collect(Collectors.toSet()));<% } else { %>
             user.getAuthorities());<% } %>
