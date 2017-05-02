@@ -39,12 +39,12 @@ public final class SecurityUtils {
      * @return the login of the current user
      */
     public static String getCurrentUserLogin() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        final Authentication authentication = securityContext.getAuthentication();
         String userName = null;
         if (authentication != null) {
             if (authentication.getPrincipal() instanceof UserDetails) {
-                UserDetails springSecurityUser = (UserDetails) authentication.getPrincipal();
+                final UserDetails springSecurityUser = (UserDetails) authentication.getPrincipal();
                 userName = springSecurityUser.getUsername();
             } else if (authentication.getPrincipal() instanceof String) {
                 userName = (String) authentication.getPrincipal();
@@ -75,11 +75,11 @@ public final class SecurityUtils {
      * @return the login of the current user
      */
     public static Optional<Long> getCurrentUserLoginId() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        final Authentication authentication = securityContext.getAuthentication();
         if (authentication != null) {
             if (authentication.getPrincipal() instanceof DomainUser) {
-                DomainUser springSecurityUser = (DomainUser) authentication.getPrincipal();
+                final DomainUser springSecurityUser = (DomainUser) authentication.getPrincipal();
                 return Optional.ofNullable(springSecurityUser.getId());
             }
         }
@@ -92,8 +92,8 @@ public final class SecurityUtils {
      * @return true if the user is authenticated, false otherwise
      */
     public static boolean isAuthenticated() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        final Authentication authentication = securityContext.getAuthentication();
         if (authentication != null) {
             return authentication.getAuthorities().stream()
                 .noneMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(AuthoritiesConstants.ANONYMOUS));
@@ -110,8 +110,8 @@ public final class SecurityUtils {
      * @return true if the current user has the authority, false otherwise
      */
     public static boolean isCurrentUserInRole(String authority) {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        final Authentication authentication = securityContext.getAuthentication();
         if (authentication != null) {
             return authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(authority));
