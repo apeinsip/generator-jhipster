@@ -129,7 +129,7 @@ public class UserService {
     }
 <%_ if (authenticationType !== 'oauth2') { _%>
 
-    public Optional<User> activateRegistration(String key) {
+    public Optional<UserDTO> activateRegistration(String key) {
         log.debug("Activating user for activation key {}", key);
         return userRepository.findOneByActivationKey(key)
             .map(user -> {
@@ -147,7 +147,8 @@ public class UserService {
                 <%_ } _%>
                 log.debug("Activated user: {}", user);
                 return user;
-            });
+            })
+            .map(UserDTO::new);
     }
 
     public Optional<User> completePasswordReset(String newPassword, String key) {
@@ -187,12 +188,12 @@ public class UserService {
 
     public User registerUser(ManagedUserVM userDTO) {
 
-        User newUser = new User();<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>
-        Authority authority = authorityRepository.findOne(AuthoritiesConstants.USER);
-        Set<Authority> authorities = new HashSet<>();<% } %><% if (databaseType === 'cassandra') { %>
+        final User newUser = new User();<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>
+        final Authority authority = authorityRepository.findOne(AuthoritiesConstants.USER);
+        final Set<Authority> authorities = new HashSet<>();<% } %><% if (databaseType === 'cassandra') { %>
         newUser.setId(UUID.randomUUID().toString());
-        Set<String> authorities = new HashSet<>();<% } %>
-        String encryptedPassword = passwordEncoder.encode(userDTO.getPassword());
+        final Set<String> authorities = new HashSet<>();<% } %>
+        final String encryptedPassword = passwordEncoder.encode(userDTO.getPassword());
         newUser.setLogin(userDTO.getLogin());
         // new user gets initially a generated password
         newUser.setPassword(encryptedPassword);
@@ -221,7 +222,7 @@ public class UserService {
     }
 
     public User createUser(UserDTO userDTO) {
-        User user = new User();<% if (databaseType === 'cassandra') { %>
+        final User user = new User();<% if (databaseType === 'cassandra') { %>
         user.setId(UUID.randomUUID().toString());<% } %>
         user.setLogin(userDTO.getLogin());
         user.setFirstName(userDTO.getFirstName());
@@ -237,7 +238,7 @@ public class UserService {
         }
         <%_ if (databaseType === 'sql' || databaseType === 'mongodb') { _%>
         if (userDTO.getAuthorities() != null) {
-            Set<Authority> authorities = new HashSet<>();
+            final Set<Authority> authorities = new HashSet<>();
             userDTO.getAuthorities().forEach(
                 authority -> authorities.add(authorityRepository.findOne(authority))
             );
@@ -247,7 +248,7 @@ public class UserService {
         <%_ if (databaseType === 'cassandra') { _%>
         user.setAuthorities(userDTO.getAuthorities());
         <%_ } _%>
-        String encryptedPassword = passwordEncoder.encode(RandomUtil.generatePassword());
+        final String encryptedPassword = passwordEncoder.encode(RandomUtil.generatePassword());
         user.setPassword(encryptedPassword);
         user.setResetKey(RandomUtil.generateResetKey());
         user.setResetDate(Instant.now());
@@ -316,7 +317,7 @@ public class UserService {
                 user.setActivated(userDTO.isActivated());
                 user.setLangKey(userDTO.getLangKey());
                 <%_ if (databaseType === 'sql' || databaseType === 'mongodb') { _%>
-                Set<Authority> managedAuthorities = user.getAuthorities();
+                final Set<Authority> managedAuthorities = user.getAuthorities();
                 managedAuthorities.clear();
                 userDTO.getAuthorities().stream()
                     .map(authorityRepository::findOne)
@@ -361,7 +362,7 @@ public class UserService {
         SecurityUtils.getCurrentUserLoginId()
             .map(userRepository::findOne)
             .ifPresent(user -> {
-            String encryptedPassword = passwordEncoder.encode(password);
+            final String encryptedPassword = passwordEncoder.encode(password);
             user.setPassword(encryptedPassword);
             <%_ if (databaseType === 'mongodb' || databaseType === 'cassandra') { _%>
             userRepository.save(user);
@@ -432,10 +433,10 @@ public class UserService {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void removeOldPersistentTokens() {
-        LocalDate now = LocalDate.now();
+        final LocalDate now = LocalDate.now();
         persistentTokenRepository.findByTokenDateBefore(now.minusMonths(1)).forEach(token -> {
             log.debug("Deleting token {}", token.getSeries());<% if (databaseType === 'sql') { %>
-            User user = token.getUser();
+            final User user = token.getUser();
             user.getPersistentTokens().remove(token);<% } %>
             persistentTokenRepository.delete(token);
         });
@@ -450,8 +451,8 @@ public class UserService {
      */
     @Scheduled(cron = "0 0 1 * * ?")
     public void removeNotActivatedUsers() {
-        List<User> users = userRepository.findAllByActivatedIsFalseAndCreatedDateBefore(Instant.now().minus(3, ChronoUnit.DAYS));
-        for (User user : users) {
+        final List<User> users = userRepository.findAllByActivatedIsFalseAndCreatedDateBefore(Instant.now().minus(3, ChronoUnit.DAYS));
+        for (final User user : users) {
             log.debug("Deleting not activated user {}", user.getLogin());
             userRepository.delete(user);
             <%_ if (searchEngine === 'elasticsearch') { _%>

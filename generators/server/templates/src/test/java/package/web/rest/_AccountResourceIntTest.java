@@ -564,7 +564,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("save-account")
     public void testSaveAccount() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -576,6 +575,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setActivated(true);
 
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         UserDTO userDTO = new UserDTO(
             null,                   // id
@@ -616,7 +617,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("save-invalid-email")
     public void testSaveInvalidEmail() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -628,6 +628,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setActivated(true);
 
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         UserDTO userDTO = new UserDTO(
             null,                   // id
@@ -660,7 +662,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("save-existing-email")
     public void testSaveExistingEmail() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -672,6 +673,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setActivated(true);
 
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         User anotherUser = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -716,7 +719,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("save-existing-email-and-login")
     public void testSaveExistingEmailAndLogin() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -728,6 +730,17 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setActivated(true);
 
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
+
+        User anotherUser = new User();
+        <%_ if (databaseType === 'cassandra') { _%>
+        anotherUser.setId(UUID.randomUUID().toString());
+        <%_ } _%>
+        anotherUser.setLogin("save-existing-email-and-login");
+        anotherUser.setEmail("save-existing-email-and-login@example.com");
+        anotherUser.setPassword(RandomStringUtils.random(60));
+        anotherUser.setActivated(true);
 
         UserDTO userDTO = new UserDTO(
             null,                   // id
@@ -761,7 +774,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("change-password")
     public void testChangePassword() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -772,6 +784,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setEmail("change-password@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
 
+        TestUtil.setTestUser(user);
+
         restMvc.perform(post("/api/account/change-password").content("new password"))
             .andExpect(status().isOk());
 
@@ -781,7 +795,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("change-password-too-small")
     public void testChangePasswordTooSmall() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -792,6 +805,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setEmail("change-password-too-small@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
 
+        TestUtil.setTestUser(user);
+
         restMvc.perform(post("/api/account/change-password").content("new"))
             .andExpect(status().isBadRequest());
 
@@ -801,7 +816,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("change-password-too-long")
     public void testChangePasswordTooLong() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -812,6 +826,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setEmail("change-password-too-long@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
 
+        TestUtil.setTestUser(user);
+
         restMvc.perform(post("/api/account/change-password").content(RandomStringUtils.random(101)))
             .andExpect(status().isBadRequest());
 
@@ -821,7 +837,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("change-password-empty")
     public void testChangePasswordEmpty() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -831,6 +846,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setLogin("change-password-empty");
         user.setEmail("change-password-empty@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         restMvc.perform(post("/api/account/change-password").content(RandomStringUtils.random(0)))
             .andExpect(status().isBadRequest());
@@ -842,7 +859,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("current-sessions")
     public void testGetCurrentSessions()  throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -852,6 +868,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setLogin("current-sessions");
         user.setEmail("current-sessions@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         PersistentToken token = new PersistentToken();
         token.setSeries("current-sessions");<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>
@@ -875,7 +893,6 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
 
     @Test<% if (databaseType === 'sql') { %>
     @Transactional<% } %>
-    @WithMockUser("invalidate-session")
     public void testInvalidateSession() throws Exception {
         User user = new User();
         <%_ if (databaseType === 'cassandra') { _%>
@@ -885,6 +902,8 @@ public class AccountResourceIntTest <% if (databaseType === 'cassandra') { %>ext
         user.setLogin("invalidate-session");
         user.setEmail("invalidate-session@example.com");
         userRepository.save<% if (databaseType === 'sql') { %>AndFlush<% } %>(user);
+
+        TestUtil.setTestUser(user);
 
         PersistentToken token = new PersistentToken();
         token.setSeries("invalidate-session");<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>

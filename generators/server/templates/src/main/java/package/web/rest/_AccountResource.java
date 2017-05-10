@@ -264,7 +264,7 @@ public class AccountResource {
     @Timed
     public ResponseEntity registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
 
-        HttpHeaders textPlainHeaders = new HttpHeaders();
+        final HttpHeaders textPlainHeaders = new HttpHeaders();
         textPlainHeaders.setContentType(MediaType.TEXT_PLAIN);
         if (!checkPasswordLength(managedUserVM.getPassword())) {
             return new ResponseEntity<>(CHECK_ERROR_MESSAGE, HttpStatus.BAD_REQUEST);
@@ -274,7 +274,7 @@ public class AccountResource {
             .orElseGet(() -> userRepository.findOneByEmailIgnoreCase(managedUserVM.getEmail())
                 .map(user -> new ResponseEntity<>("email address already in use", textPlainHeaders, HttpStatus.BAD_REQUEST))
                 .orElseGet(() -> {
-                    User user = userService.registerUser(managedUserVM);
+                    final User user = userService.registerUser(managedUserVM);
 
                     mailService.sendActivationEmail(user);
                     return new ResponseEntity<>(HttpStatus.CREATED);
@@ -331,8 +331,9 @@ public class AccountResource {
     @PostMapping("/account")
     @Timed
     public ResponseEntity<UserDTO> saveAccount(@Valid @RequestBody UserDTO userDTO) {
-        Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
-        if (existingUser.isPresent() && (!existingUser.get().getLogin().equalsIgnoreCase(userLogin))) {
+        final Long userId = SecurityUtils.getCurrentUserLoginId().get();
+        final Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
+        if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("user-management", "emailexists", "Email already in use")).body(null);
         }
         return userService.updateUser(userDTO.getFirstName(), userDTO.getLastName(), userDTO.getEmail(),
@@ -393,7 +394,7 @@ public class AccountResource {
     @DeleteMapping("/account/sessions/{series}")
     @Timed
     public void invalidateSession(@PathVariable String series) throws UnsupportedEncodingException {
-        String decodedSeries = URLDecoder.decode(series, "UTF-8");
+        final String decodedSeries = URLDecoder.decode(series, "UTF-8");
         userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).ifPresent(u ->
             persistentTokenRepository.findByUser(u).stream()
                 .filter(persistentToken -> StringUtils.equals(persistentToken.getSeries(), decodedSeries))<% if (databaseType === 'sql' || databaseType === 'mongodb') { %>

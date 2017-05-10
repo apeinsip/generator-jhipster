@@ -24,11 +24,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import <%=packageName%>.domain.Authority;
+import <%=packageName%>.domain.User;
+import <%=packageName%>.security.DomainUser;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,10 +65,10 @@ public class TestUtil {
      */
     public static byte[] convertObjectToJsonBytes(Object object)
             throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        JavaTimeModule module = new JavaTimeModule();
+        final JavaTimeModule module = new JavaTimeModule();
         mapper.registerModule(module);
 
         return mapper.writeValueAsBytes(object);
@@ -69,7 +82,7 @@ public class TestUtil {
      * @return the JSON byte array
      */
     public static byte[] createByteArray(int size, String data) {
-        byte[] byteArray = new byte[size];
+        final byte[] byteArray = new byte[size];
         for (int i = 0; i < size; i++) {
             byteArray[i] = Byte.parseByte(data, 2);
         }
@@ -95,7 +108,7 @@ public class TestUtil {
                     return false;
                 }
                 return true;
-            } catch (DateTimeParseException e) {
+            } catch (final DateTimeParseException e) {
                 mismatchDescription.appendText("was ").appendValue(item)
                     .appendText(", which could not be parsed as a ZonedDateTime");
                 return false;
@@ -122,20 +135,43 @@ public class TestUtil {
      */
     @SuppressWarnings("unchecked")
     public static void equalsVerifier(Class clazz) throws Exception {
-        Object domainObject1 = clazz.getConstructor().newInstance();
+        final Object domainObject1 = clazz.getConstructor().newInstance();
         assertThat(domainObject1.toString()).isNotNull();
         assertThat(domainObject1).isEqualTo(domainObject1);
         assertThat(domainObject1.hashCode()).isEqualTo(domainObject1.hashCode());
         // Test with an instance of another class
-        Object testOtherObject = new Object();
+        final Object testOtherObject = new Object();
         assertThat(domainObject1).isNotEqualTo(testOtherObject);
         assertThat(domainObject1).isNotEqualTo(null);
         // Test with an instance of the same class
-        Object domainObject2 = clazz.getConstructor().newInstance();
+        final Object domainObject2 = clazz.getConstructor().newInstance();
         assertThat(domainObject1).isNotEqualTo(domainObject2);
         <%_ if (databaseType === 'sql' || databaseType === 'mongodb') { _%>
         // HashCodes are equals because the objects are not persisted yet
         assertThat(domainObject1.hashCode()).isEqualTo(domainObject2.hashCode());
         <%_ } _%>
+    }
+
+    private static void setTestUser(long userId, String name, Stream<String> authorities) {
+        final List<SimpleGrantedAuthority> authorityList = authorities.map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        final SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext
+                .setAuthentication(new UsernamePasswordAuthenticationToken(new DomainUser(userId, name, "password", authorityList), "password", authorityList));
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    /**
+     * Configures Sprint to use the provided informations as the currently
+     * authenticated user.
+     */
+    public static void setTestUser(long userId, String name, String... authorities) {
+        setTestUser(userId, name, Arrays.asList(authorities).stream());
+    }
+    /**
+     * Creates a user object, and sets to be the currently authenticated user by
+     * Spring.
+     */
+    public static void setTestUser(User user) {
+        setTestUser(user.getId(), user.getLogin(), user.getAuthorities().stream().map(Authority::getName));
     }
 }
